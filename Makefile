@@ -4,9 +4,9 @@ REPO_TARGET="https://github.com/obierlaire/txtmark.git"
 
 # Setup environment: install tools, clone repository, and prepare Docker
 setup:
-	tool/makefile install
-	git clone $(REPO_TARGET) target
-	docker-compose build
+	docker-compose up -d
+	docker-compose exec java-optim /bin/bash -c "git clone $(REPO_TARGET) target"
+	docker-compose exec java-optim /bin/bash -c "source /home/ubuntu/.sdkman/bin/sdkman-init.sh && cd /workspace/tools && make install"
 
 # Build the Docker image
 build:
@@ -43,4 +43,3 @@ profile:
 # Run energy measurement in Docker, then optimization outside
 energy:
 	docker-compose exec java-optim /workspace/tools/measure_carbon.sh
-	./optimise.sh

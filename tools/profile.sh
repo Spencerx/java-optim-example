@@ -60,6 +60,9 @@ echo "📊 Running Java application with JFR profiling..."
 echo "   JFR file: $JFR_FILE"
 echo "   Package filter: $PACKAGE_FILTER"
 
+cd /workspace/target
+mvn install -Dmaven.compiler.debug=true
+
 # Run with profiling (taskset for CPU pinning in Docker)
 java -cp target/classes \
     "${JAVA_OPTS[@]}" \

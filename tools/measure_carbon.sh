@@ -1,11 +1,11 @@
 #!/bin/bash
-"""
-Shell script to measure carbon footprint of Java program
-Usage: ./tools/measure_carbon.sh
-"""
 
-# Ensure we're in the right directory
-cd /workspace
+# Initialize SDKman 
+source "/home/ubuntu/.sdkman/bin/sdkman-init.sh"
+
+
+# Force reload SDKman in case it's not in PATH
+source "$HOME/.sdkman/bin/sdkman-init.sh" 2>/dev/null || true
 
 # Install codecarbon if not already installed
 if ! python3 -c "import codecarbon" 2>/dev/null; then
@@ -14,6 +14,7 @@ if ! python3 -c "import codecarbon" 2>/dev/null; then
 fi
 
 sdk use java 8.0.422-tem
+java -version
 
 # Create results directory if it doesn't exist
 mkdir -p /workspace/results

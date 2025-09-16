@@ -34,7 +34,7 @@ RUN ARCH=$(uname -m | sed 's/x86_64/x64/; s/aarch64/arm64/') && \
     ln -s /opt/async-profiler-4.1-${OS}-${ARCH}/lib/libasyncProfiler.so /usr/local/lib/libasyncProfiler.so
 
 # Switch to ubuntu user
-# USER ubuntu
+USER ubuntu
 ENV SDKMAN_DIR="/home/ubuntu/.sdkman"
 
 # Install SDKMAN as ubuntu user
