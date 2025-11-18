@@ -20,7 +20,8 @@ java -version
 mkdir -p /workspace/results
 
 cd /workspace/target
-mvn install -Dmaven.compiler.debug=true
+mvn clean
+mvn install
 
 # Run the carbon measurement script
 python3 /workspace/tools/measure_carbon.py

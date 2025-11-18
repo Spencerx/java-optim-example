@@ -15,4 +15,6 @@ services:
     stdin_open: true
     tty: true
     command: /bin/bash
+    mem_limit: 10g
+    memswap_limit: 10g
     

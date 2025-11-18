@@ -8,5 +8,6 @@ mkdir -p results/usage/
 # echo "Analyse done."
 
 echo "Optimising..."
-cn --auto --config continuedev/mistral --format json -p < tools/prompts/optimise.txt | tee results/usage/optimise-cn.json
+#cn --auto --config continuedev/mistral --format json -p < tools/prompts/optimise.txt | tee results/usage/optimise-cn.json
+cn --auto --config ~/.continue/config.yaml --format json -p < tools/prompts/optimise.txt | tee results/usage/optimise-cn.json
 echo "Optimisation done."

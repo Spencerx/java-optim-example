@@ -1,1 +1,1 @@
-java -cp target/classes com.github.rjeschke.txtmark.cmd.Run /workspace/test/shakespeare.txt
+java -cp target/classes com.github.rjeschke.txtmark.cmd.Run /workspace/test/test.txt

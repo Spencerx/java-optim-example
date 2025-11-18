@@ -27,11 +27,11 @@ RUN pip3 install --break-system-packages codecarbon
 RUN ARCH=$(uname -m | sed 's/x86_64/x64/; s/aarch64/arm64/') && \
     OS=$(uname -s | tr '[:upper:]' '[:lower:]') && \
     cd /opt && \
-    wget https://github.com/async-profiler/async-profiler/releases/latest/download/async-profiler-4.1-${OS}-${ARCH}.tar.gz && \
-    tar -xzf async-profiler-4.1-${OS}-${ARCH}.tar.gz && \
-    rm async-profiler-4.1-${OS}-${ARCH}.tar.gz && \
-    ln -s /opt/async-profiler-4.1-${OS}-${ARCH}/bin/asprof /usr/local/bin/asprof && \
-    ln -s /opt/async-profiler-4.1-${OS}-${ARCH}/lib/libasyncProfiler.so /usr/local/lib/libasyncProfiler.so
+    wget https://github.com/async-profiler/async-profiler/releases/latest/download/async-profiler-4.2-${OS}-${ARCH}.tar.gz && \
+    tar -xzf async-profiler-4.2-${OS}-${ARCH}.tar.gz && \
+    rm async-profiler-4.2-${OS}-${ARCH}.tar.gz && \
+    ln -s /opt/async-profiler-4.2-${OS}-${ARCH}/bin/asprof /usr/local/bin/asprof && \
+    ln -s /opt/async-profiler-4.2-${OS}-${ARCH}/lib/libasyncProfiler.so /usr/local/lib/libasyncProfiler.so
 
 # Switch to ubuntu user
 USER ubuntu
@@ -45,8 +45,8 @@ RUN /bin/bash -c "source $SDKMAN_DIR/bin/sdkman-init.sh && \
     sdk install java 8.0.422-tem && \
     sdk install java 21.0.4-tem && \
     sdk install groovy 4.0.15 && \
-    sdk install maven && \
-    sdk default java 8.0.422-tem"
+    sdk default java 8.0.422-tem && \
+    sdk install maven 3.6.3"
 
 # Set up shell to use SDKMAN
 RUN echo 'source $SDKMAN_DIR/bin/sdkman-init.sh' >> /home/ubuntu/.bashrc

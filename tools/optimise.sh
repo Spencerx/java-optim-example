@@ -7,5 +7,5 @@ echo "Analyse done."
 
 echo "Optimising..."
 claude -p --verbose --output-format stream-json < tools/prompts/optimise.txt | tee results/usage/optimise.json
-./tools/claude-usage/claude-usage results/usage/optimise.json > results/usage/optimise.json
+./tools/claude-usage/claude-usage results/usage/optimise.json > results/usage/optimise-agg.json
 echo "Optimisation done."

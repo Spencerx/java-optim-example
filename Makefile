@@ -4,8 +4,10 @@ REPO_TARGET="https://github.com/obierlaire/txtmark.git"
 
 # Setup environment: install tools, clone repository, and prepare Docker
 setup:
+	mkdir -p target
+	docker-compose down
 	docker-compose up -d
-	docker-compose exec java-optim /bin/bash -c "git clone $(REPO_TARGET) target"
+	docker-compose exec java-optim /bin/bash -c "if [ -d /workspace/target/.git ]; then cd /workspace/target && git pull; else rm -rf /workspace/target/* /workspace/target/.* 2>/dev/null || true && cd /workspace/target && git clone $(REPO_TARGET) .; fi"
 	docker-compose exec java-optim /bin/bash -c "source /home/ubuntu/.sdkman/bin/sdkman-init.sh && cd /workspace/tools && make install"
 
 # Build the Docker image

@@ -48,22 +48,46 @@ def run_single_measurement(iteration, cmd, num_iterations):
     tracker.start()
 
     try:
+        # Use the environment as-is (JAVA_HOME and PATH are already set by measure_carbon.sh)
         # Run the Java command with same JVM flags, with stdin input
         result = subprocess.run(cmd, cwd="/workspace/target",
                                 capture_output=True, text=True,
                                 input="\n\n")  # Equivalent to printf '\n\n'
 
-        # Only show errors if the program fails
+        # Always log stderr if present (for debugging/errors)
+        if result.stderr:
+            print(f"  [stderr]: {result.stderr.strip()}")
+
+        # Check if the program failed
         if result.returncode != 0:
-            error_msg = f"Java program failed with exit code: {result.returncode}"
+            # Interpret exit code
+            if result.returncode == -9:
+                error_msg = f"Java program was killed by SIGKILL (exit code -9)\n"
+                error_msg += "This usually means:\n"
+                error_msg += "  - Out of Memory (OOM killer)\n"
+                error_msg += "  - Container memory limit exceeded\n"
+                error_msg += "  - Process was forcibly terminated\n"
+                error_msg += f"Container memory limit: Check docker-compose.yml\n"
+                error_msg += f"Java heap settings: -Xms2048m -Xmx4096m"
+            else:
+                error_msg = f"Java program failed with exit code: {result.returncode}"
+
             if result.stderr:
-                error_msg += f"\nErrors:\n{result.stderr}"
+                error_msg += f"\nStderr output:\n{result.stderr}"
+            print(f"ERROR: {error_msg}")
             raise MeasurementError(error_msg, result.returncode)
 
     except subprocess.SubprocessError as e:
-        raise MeasurementError(f"Subprocess error: {e}")
+        error_msg = f"Subprocess error: {e}"
+        print(f"ERROR: {error_msg}")
+        raise MeasurementError(error_msg)
+    except MeasurementError:
+        # Re-raise MeasurementError as-is
+        raise
     except Exception as e:
-        raise MeasurementError(f"Unexpected error running Java program: {e}")
+        error_msg = f"Unexpected error running Java program: {e}"
+        print(f"ERROR: {error_msg}")
+        raise MeasurementError(error_msg)
 
     finally:
         # Stop tracking and get emissions
@@ -108,13 +132,28 @@ def run_java_with_carbon_tracking():
     except FileNotFoundError:
         pass  # Continue if cpupower not available
 
+    # Display Java environment (set by measure_carbon.sh via SDKMAN)
+    java_home = os.environ.get('JAVA_HOME')
+    if java_home:
+        print(f"JAVA_HOME: {java_home}")
+
+    # Check Java version
+    version_check = subprocess.run(
+        ["java", "-version"], capture_output=True, text=True)
+    if version_check.returncode == 0:
+        print(
+            f"Java version: {version_check.stderr.splitlines()[0] if version_check.stderr else 'unknown'}")
+    else:
+        print("ERROR: Java not found or not executable")
+        print("This script should be run via tools/measure_carbon.sh which sets up the Java environment")
+        sys.exit(1)
+
     java_opts = [
         # Disable JIT compilation (interpreter mode only) - MUST KEEP for determinism
         "-Xint",
-        # MASSIVE initial heap (6GB) - eliminate ALL allocation overhead
-        "-Xms6144m",
-        # MASSIVE maximum heap (8GB) - ensure zero memory pressure
-        "-Xmx8192m",
+        # Reduced heap sizes to avoid OOM in container (was 6-8GB, now 2-4GB)
+        "-Xms2048m",
+        "-Xmx4096m",
         # Use SerialGC for most deterministic behavior (single-threaded, predictable)
         "-XX:+UseSerialGC",
         # Pre-allocate all heap memory at startup
@@ -132,13 +171,16 @@ def run_java_with_carbon_tracking():
         "-server",
     ]
 
+    # Input file configuration
+    input_file = "/workspace/test/shakespeare.txt"
+
     # Command with stable deterministic flags
     cmd = [
         "taskset", "-c", "0",  # Pin to CPU core 0
         "java", "-cp", "target/classes",
         *java_opts,
         "com.github.rjeschke.txtmark.cmd.Run",
-        "/workspace/test/shakespeare.txt"
+        input_file
     ]
 
     # System stabilization

@@ -28,10 +28,10 @@ java -version
 JAVA_OPTS=(
     # Disable JIT compilation (interpreter mode only) - MUST KEEP for determinism
     "-Xint"
-    # MASSIVE initial heap (6GB) - eliminate ALL allocation overhead
-    "-Xms6144m"
-    # MASSIVE maximum heap (8GB) - ensure zero memory pressure  
-    "-Xmx8192m"
+    # Initial heap (2GB) - fit within available container memory
+    "-Xms2048m"
+    # Maximum heap (2.5GB) - fit within available container memory
+    "-Xmx2560m"
     # Use SerialGC for most deterministic behavior (single-threaded, predictable)
     "-XX:+UseSerialGC"
     # Pre-allocate all heap memory at startup
@@ -86,20 +86,19 @@ if [ ! -f /workspace/tools/jfr-analyser/target/jfr-analyser-1.0.0.jar ]; then
     exit 1
 fi
 
-# Run analysis with Java 21
-sdk use java 21.0.4-tem
+# Run analysis with Java 8
 java -jar /workspace/tools/jfr-analyser/target/jfr-analyser-1.0.0.jar \
     "$JFR_FILE" \
     "$PACKAGE_FILTER" \
     "$RESULT_PATH/$JSON_REPORT" \
     -s "/workspace/target"
 
-if [ $? -eq 0 ]; then
-    echo "✅ Analysis complete!"
-    echo "📄 Hotspot report: $RESULT_PATH/$JSON_REPORT"
-    echo "🔥 Top 5 CPU hotspots:"
-    head -20 "$RESULT_PATH/$JSON_REPORT" | grep -A 5 '"cpuPercent"'
-else
+if [ $? -ne 0 ]; then
     echo "❌ Analysis failed"
     exit 1
 fi
+
+echo "✅ Analysis complete!"
+echo "📄 Hotspot report: $RESULT_PATH/$JSON_REPORT"
+echo "🔥 Top 5 CPU hotspots:"
+head -20 "$RESULT_PATH/$JSON_REPORT" | grep -A 5 '"cpuPercent"'
