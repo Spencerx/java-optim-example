@@ -1,0 +1,28 @@
+{
+    "models": {
+        "claude-opus-4-8": {
+            "input_tokens": 13194,
+            "output_tokens": 99,
+            "total_tokens": 13293,
+            "input_cost_usd": 0.0,
+            "output_cost_usd": 0.0,
+            "total_cost_usd": 0.0
+        },
+        "claude-sonnet-4-20250514": {
+            "input_tokens": 4443,
+            "output_tokens": 6338,
+            "total_tokens": 10781,
+            "input_cost_usd": 0.01332900,
+            "output_cost_usd": 0.09507000,
+            "total_cost_usd": 0.10839900
+        }
+    },
+    "total": {
+        "input_tokens": 17637,
+        "output_tokens": 6437,
+        "total_tokens": 24074,
+        "input_cost_usd": 0.013329,
+        "output_cost_usd": 0.09507,
+        "total_cost_usd": 0.108399
+    }
+}

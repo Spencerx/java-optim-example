@@ -1,6 +1,7 @@
 #!/bin/bash
 
 echo "Analysing..."
+mkdir results/usage
 claude -p --verbose --output-format stream-json < tools/prompts/analyse.txt | tee results/usage/analyse.json
 ./tools/claude-usage/claude-usage results/usage/analyse.json > results/usage/analyse-agg.json
 echo "Analyse done."

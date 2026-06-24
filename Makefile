@@ -1,4 +1,4 @@
-.PHONY: setup build run stop shell clean profile energy
+.PHONY: setup build run stop shell clean profile energy optimise
 
 REPO_TARGET="https://github.com/obierlaire/txtmark.git"
 
@@ -45,3 +45,7 @@ profile:
 # Run energy measurement in Docker, then optimization outside
 energy:
 	docker-compose exec java-optim /workspace/tools/measure_carbon.sh
+
+# Run optimization
+optimise:
+	./tools/optimise.sh

@@ -21,3 +21,5 @@ Thumbs.db
 
 # Docker volumes and temp files
 *.log
+
+.crush

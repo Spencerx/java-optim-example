@@ -41,6 +41,8 @@ make profile
 # 2. Measure baseline energy consumption, then run AI optimization
 make energy
 # This will first measure energy, then run ./optimise.sh outside Docker
+./optimise.sh
+
 # Save the energy measurement output for comparison
 
 # 3. Run energy measurement again to compare results

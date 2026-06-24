@@ -3,12 +3,33 @@
 Script to measure energy and carbon footprint of Java program using CodeCarbon
 """
 
+import logging
 import os
 import subprocess
 import sys
 import time
 
 from codecarbon import OfflineEmissionsTracker
+
+# Inside Docker on Apple Silicon, `lscpu` reports "Socket(s): -", so during
+# tracker __init__ codecarbon's count_physical_cpus() does int('-') and logs a
+# noisy (but harmless) WARNING, defaulting to 1 CPU. That count is metadata only
+# -- it does not affect our pinned TDP energy estimate. We build the tracker with
+# log_level='ERROR' to suppress that init-time warning, then restore the shared
+# "codecarbon" logger to WARNING so real warnings during measurement stay visible.
+_CC_LOGGER = logging.getLogger("codecarbon")
+
+# On Apple Silicon / Docker on macOS (and any host without Intel RAPL at
+# /sys/class/powercap/intel-rapl), codecarbon cannot read real hardware energy
+# and falls back to a TDP-based estimate. We pin that estimate explicitly so the
+# numbers are deterministic and codecarbon doesn't try (and fail) to auto-detect
+# CPU specs -- that auto-detection is what emits the noisy
+# "invalid literal for int() ... '-'" warning inside the container.
+# NOTE: with this fallback the figures are ESTIMATES suitable for relative
+# before/after comparison, not absolute hardware energy measurements.
+# 4 W/thread is codecarbon's own default; 10 threads -> 40 W, matching the
+# previous implicit estimate. Override via FORCE_CPU_POWER_W.
+FORCE_CPU_POWER_W = float(os.environ.get("FORCE_CPU_POWER_W", "40"))
 
 
 class MeasurementError(Exception):
@@ -38,11 +59,15 @@ def run_single_measurement(iteration, cmd, num_iterations):
     print(f"Iteration {iteration + 1}/{num_iterations}...")
 
     # Create single tracker per iteration
+    # Construct quietly (suppresses the harmless lscpu CPU-count warning), then
+    # restore WARNING so genuine warnings during measurement remain visible.
     tracker = OfflineEmissionsTracker(
         project_name=f"java-txtmark-benchmark-iter-{iteration}",
         country_iso_code='DEU',
-        log_level='WARNING',
+        log_level='ERROR',
+        force_cpu_power=FORCE_CPU_POWER_W,
     )
+    _CC_LOGGER.setLevel(logging.WARNING)
 
     start_time = time.time()
     tracker.start()
@@ -172,7 +197,7 @@ def run_java_with_carbon_tracking():
     ]
 
     # Input file configuration
-    input_file = "/workspace/test/shakespeare.txt"
+    input_file = "/workspace/test/test.txt"
 
     # Command with stable deterministic flags
     cmd = [
@@ -182,6 +207,16 @@ def run_java_with_carbon_tracking():
         "com.github.rjeschke.txtmark.cmd.Run",
         input_file
     ]
+
+    # Make the measurement mode explicit. Real energy needs Intel RAPL, which is
+    # absent on Apple Silicon / Docker-on-macOS, so codecarbon estimates from TDP.
+    rapl_available = os.path.isdir("/sys/class/powercap/intel-rapl")
+    if rapl_available:
+        print("Energy source: Intel RAPL (measured)")
+    else:
+        print(f"Energy source: TDP ESTIMATE ({FORCE_CPU_POWER_W:.0f} W CPU) "
+              "- no Intel RAPL available; figures are estimates for "
+              "relative before/after comparison, not absolute measurements.")
 
     # System stabilization
     print("Stabilizing system...")
@@ -269,6 +304,11 @@ def run_java_with_carbon_tracking():
     print(f"\nLOCATION & CARBON INTENSITY:")
     print(f"  Country:   {country}")
     print(f"  Carbon Intensity: {carbon_intensity:.1f} gCO2/kWh")
+
+    if not rapl_available:
+        print(f"\nNOTE: Energy estimated from TDP ({FORCE_CPU_POWER_W:.0f} W), "
+              "not measured (no Intel RAPL).")
+        print("      Valid for relative before/after comparison only.")
 
     print("="*70)
 

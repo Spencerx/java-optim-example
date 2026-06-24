@@ -24,14 +24,15 @@ RUN apt-get update && apt-get install -y \
 RUN pip3 install --break-system-packages codecarbon
 
 # Install async-profiler
+ARG ASYNC_PROFILER_VERSION=4.4
 RUN ARCH=$(uname -m | sed 's/x86_64/x64/; s/aarch64/arm64/') && \
     OS=$(uname -s | tr '[:upper:]' '[:lower:]') && \
     cd /opt && \
-    wget https://github.com/async-profiler/async-profiler/releases/latest/download/async-profiler-4.2-${OS}-${ARCH}.tar.gz && \
-    tar -xzf async-profiler-4.2-${OS}-${ARCH}.tar.gz && \
-    rm async-profiler-4.2-${OS}-${ARCH}.tar.gz && \
-    ln -s /opt/async-profiler-4.2-${OS}-${ARCH}/bin/asprof /usr/local/bin/asprof && \
-    ln -s /opt/async-profiler-4.2-${OS}-${ARCH}/lib/libasyncProfiler.so /usr/local/lib/libasyncProfiler.so
+    wget https://github.com/async-profiler/async-profiler/releases/download/v${ASYNC_PROFILER_VERSION}/async-profiler-${ASYNC_PROFILER_VERSION}-${OS}-${ARCH}.tar.gz && \
+    tar -xzf async-profiler-${ASYNC_PROFILER_VERSION}-${OS}-${ARCH}.tar.gz && \
+    rm async-profiler-${ASYNC_PROFILER_VERSION}-${OS}-${ARCH}.tar.gz && \
+    ln -s /opt/async-profiler-${ASYNC_PROFILER_VERSION}-${OS}-${ARCH}/bin/asprof /usr/local/bin/asprof && \
+    ln -s /opt/async-profiler-${ASYNC_PROFILER_VERSION}-${OS}-${ARCH}/lib/libasyncProfiler.so /usr/local/lib/libasyncProfiler.so
 
 # Switch to ubuntu user
 USER ubuntu
